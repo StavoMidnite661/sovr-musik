@@ -1,7 +1,8 @@
 node_modules
-tracks/*.mp4
+
 .firebase
 firebase-debug.log
 .DS_Store
 deployment_staging
 sovr-musik.zip
+sovr-musik-lite.zip
