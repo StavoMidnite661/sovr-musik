@@ -57,15 +57,34 @@
             animation: wave 0.5s ease-in-out infinite alternate;
         }
 
-        .waveform-bar:nth-child(1) { animation-delay: 0s; }
-        .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
-        .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
-        .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
-        .waveform-bar:nth-child(5) { animation-delay: 0.15s; }
+        .waveform-bar:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .waveform-bar:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .waveform-bar:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .waveform-bar:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .waveform-bar:nth-child(5) {
+            animation-delay: 0.15s;
+        }
 
         @keyframes wave {
-            from { height: 8px; }
-            to { height: 24px; }
+            from {
+                height: 8px;
+            }
+
+            to {
+                height: 24px;
+            }
         }
 
         .waveform-paused .waveform-bar {
@@ -89,12 +108,15 @@
 <body class="h-screen flex">
 
     <!-- Mobile Sidebar Backdrop -->
-    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="sidebar-backdrop" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 z-50 w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col shadow-2xl md:shadow-none">
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 z-50 w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col shadow-2xl md:shadow-none">
         <div class="p-6 flex justify-between items-center">
-            <h1 class="text-2xl font-black italic tracking-tighter text-white">SOVR<span class="text-orange-500">MUSIK</span></h1>
+            <h1 class="text-2xl font-black italic tracking-tighter text-white">SOVR<span
+                    class="text-orange-500">MUSIK</span></h1>
             <button onclick="toggleSidebar()" class="md:hidden text-zinc-400 hover:text-white">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -130,7 +152,8 @@
         <div class="p-4 border-t border-zinc-800">
             <button onclick="triggerUpload()"
                 class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-orange-900/20 flex items-center justify-center">
-                <i class="fas fa-cloud-upload-alt mr-2"></i> <span class="hidden md:inline">Upload</span><span class="md:hidden">Upload Media</span>
+                <i class="fas fa-cloud-upload-alt mr-2"></i> <span class="hidden md:inline">Upload</span><span
+                    class="md:hidden">Upload Media</span>
             </button>
         </div>
     </aside>
@@ -139,7 +162,8 @@
     <main class="flex-1 flex flex-col relative overflow-hidden w-full">
 
         <!-- Header with Search -->
-        <header class="h-16 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-zinc-950/50 backdrop-blur-sm z-10 shrink-0">
+        <header
+            class="h-16 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-zinc-950/50 backdrop-blur-sm z-10 shrink-0">
             <!-- Mobile Menu Toggle -->
             <button onclick="toggleSidebar()" class="mr-4 md:hidden text-zinc-400 hover:text-white">
                 <i class="fas fa-bars text-xl"></i>
@@ -157,7 +181,8 @@
             </div>
             <div class="flex items-center space-x-3 md:space-x-4">
                 <span id="library-count" class="text-xs text-zinc-500 hidden md:inline">Loading...</span>
-                <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0">
+                <div
+                    class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0">
                     SE
                 </div>
             </div>
@@ -170,7 +195,7 @@
 
         <!-- Floating Player Bar -->
         <div id="audio-player-bar"
-            class="absolute bottom-0 left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 p-2 md:p-4 transform translate-y-full transition-transform duration-300 z-50">
+            class="absolute bottom-0 left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 p-2 md:p-4 transform translate-y-full transition-transform duration-300 z-30">
             <div class="max-w-6xl mx-auto flex items-center justify-between gap-2 md:gap-4">
                 <!-- Track Info -->
                 <div class="flex items-center w-auto md:w-1/4 min-w-0 mr-2 md:mr-0">
@@ -185,27 +210,36 @@
                 <!-- Controls -->
                 <div class="flex flex-col items-center flex-1 space-y-1 md:space-y-2">
                     <div class="flex items-center space-x-4 md:space-x-6">
-                        <button onclick="toggleShuffle()" id="shuffle-btn" class="hidden md:inline text-zinc-400 hover:text-white"><i class="fas fa-random text-sm"></i></button>
-                        <button onclick="playPrevious()" class="text-zinc-400 hover:text-white"><i class="fas fa-step-backward text-base md:text-lg"></i></button>
+                        <button onclick="toggleShuffle()" id="shuffle-btn"
+                            class="hidden md:inline text-zinc-400 hover:text-white"><i
+                                class="fas fa-random text-sm"></i></button>
+                        <button onclick="playPrevious()" class="text-zinc-400 hover:text-white"><i
+                                class="fas fa-step-backward text-base md:text-lg"></i></button>
                         <button id="player-play-btn" onclick="togglePlay()"
                             class="w-8 h-8 md:w-10 md:h-10 bg-orange-500 text-black rounded-full flex items-center justify-center hover:scale-105 transition hover:bg-orange-400">
                             <i class="fas fa-play ml-1"></i>
                         </button>
-                        <button onclick="playNext()" class="text-zinc-400 hover:text-white"><i class="fas fa-step-forward text-base md:text-lg"></i></button>
-                        <button onclick="toggleRepeat()" id="repeat-btn" class="hidden md:inline text-zinc-400 hover:text-white"><i class="fas fa-redo text-sm"></i></button>
+                        <button onclick="playNext()" class="text-zinc-400 hover:text-white"><i
+                                class="fas fa-step-forward text-base md:text-lg"></i></button>
+                        <button onclick="toggleRepeat()" id="repeat-btn"
+                            class="hidden md:inline text-zinc-400 hover:text-white"><i
+                                class="fas fa-redo text-sm"></i></button>
                     </div>
-                    <!-- Progress Bar (Visible on mobile but compact) -->
+                    <!-- Progress Bar -->
                     <div class="flex items-center space-x-2 w-full max-w-lg md:px-0">
-                        <span id="player-current" class="text-[9px] md:text-[10px] text-zinc-500 font-mono w-6 md:w-10 text-right">0:00</span>
+                        <span id="player-current"
+                            class="text-[9px] md:text-[10px] text-zinc-500 font-mono w-6 md:w-10 text-right">0:00</span>
                         <input id="player-seek" type="range" class="flex-1 h-1 bg-zinc-800 rounded-full appearance-none"
                             value="0" step="0.1" min="0" oninput="seekMedia(this.value)">
-                        <span id="player-duration" class="text-[9px] md:text-[10px] text-zinc-500 font-mono w-6 md:w-10">0:00</span>
+                        <span id="player-duration"
+                            class="text-[9px] md:text-[10px] text-zinc-500 font-mono w-6 md:w-10">0:00</span>
                     </div>
                 </div>
 
                 <!-- Volume & Queue (Hidden on Mobile) -->
                 <div class="hidden md:flex items-center w-1/4 justify-end space-x-4">
-                    <button onclick="toggleQueue()" class="text-zinc-400 hover:text-white" title="Queue"><i class="fas fa-list-ol"></i></button>
+                    <button onclick="toggleQueue()" class="text-zinc-400 hover:text-white" title="Queue"><i
+                            class="fas fa-list-ol"></i></button>
                     <div class="flex items-center space-x-2">
                         <i class="fas fa-volume-up text-zinc-400 text-xs"></i>
                         <input type="range" class="w-24 h-1 bg-zinc-800 rounded-full appearance-none" value="80"
@@ -225,9 +259,30 @@
         </div>
     </main>
 
+    <!-- Playlist Selection Modal -->
+    <div id="playlist-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 rounded-2xl w-full max-w-sm border border-zinc-800 overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Add to Playlist</h3>
+                <button onclick="closePlaylistModal()" class="text-zinc-400 hover:text-white"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="playlist-modal-list" class="max-h-64 overflow-y-auto p-2">
+                <!-- Playlists injected here -->
+            </div>
+            <div class="p-4 border-t border-zinc-800 bg-zinc-900/50">
+                <button onclick="createNewPlaylist(null, pendingTrackId)"
+                    class="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-lg font-bold transition flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i> New Playlist
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Video Overlay -->
     <div id="video-overlay" class="fixed inset-0 bg-black z-[100] hidden flex flex-col items-center justify-center p-4">
-        <button onclick="closeVideo()" class="absolute top-4 right-4 text-white text-3xl hover:text-red-500 z-10"><i class="fas fa-times"></i></button>
+        <button onclick="closeVideo()" class="absolute top-4 right-4 text-white text-3xl hover:text-red-500 z-10"><i
+                class="fas fa-times"></i></button>
         <div class="w-full max-w-5xl aspect-video bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl relative">
             <video id="global-video-player" controls class="w-full h-full object-contain"></video>
         </div>
@@ -239,17 +294,20 @@
     <audio id="global-audio-player" class="hidden"></audio>
 
     <script>
-        console.log('=== SOVR MUSIK v3 MOBILE ===');
+        console.log('=== SOVR MUSIK v3.1 PLAYLISTS ===');
 
         // ========== APP STATE ==========
         let currentView = 'dashboard';
         let mediaLibrary = [];
         let filteredLibrary = [];
+        let playlists = JSON.parse(localStorage.getItem('sovr_playlists')) || [];
         let searchQuery = '';
         let currentTrackIndex = -1;
         let playQueue = [];
         let isShuffled = false;
         let repeatMode = 0; // 0=off, 1=all, 2=one
+        let currentPlaylistViewId = null; // ID of playlist currently viewing
+        let pendingTrackId = null; // Track waiting to be added to playlist
 
         const audioPlayer = document.getElementById('global-audio-player');
         const videoPlayer = document.getElementById('global-video-player');
@@ -268,8 +326,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
-            
-            // Toggle transform class for mobile slide-in
+
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
                 backdrop.classList.remove('hidden');
@@ -286,8 +343,6 @@
                 if (!res.ok) throw new Error('tracks.json not found');
 
                 const tracks = await res.json();
-                console.log('SOVR Musik: Loading', tracks.length, 'tracks...');
-
                 mediaLibrary = tracks.map((track, index) => ({
                     id: index + 1,
                     name: track.title,
@@ -301,17 +356,100 @@
 
                 filteredLibrary = [...mediaLibrary];
                 updateLibraryCount();
-                console.log('SOVR Musik: Loaded', mediaLibrary.length, 'tracks!');
             } catch (err) {
                 console.error('Failed to load tracks:', err);
-                mediaLibrary = [];
-                filteredLibrary = [];
             }
         }
 
         function updateLibraryCount() {
             const total = mediaLibrary.length;
             document.getElementById('library-count').innerText = `${total} tracks`;
+        }
+
+        // ========== PLAYLIST LOGIC ==========
+        function savePlaylists() {
+            localStorage.setItem('sovr_playlists', JSON.stringify(playlists));
+        }
+
+        function createNewPlaylist(e, trackIdToAdd = null) {
+            if (e) e.stopPropagation();
+            const name = prompt("Enter playlist name:", "New Playlist");
+            if (!name) return;
+
+            const newPlaylist = {
+                id: Date.now(),
+                name: name,
+                tracks: trackIdToAdd ? [trackIdToAdd] : [],
+                createdAt: Date.now()
+            };
+
+            playlists.push(newPlaylist);
+            savePlaylists();
+
+            if (trackIdToAdd) {
+                closePlaylistModal();
+                alert(`Added to ${name}!`);
+            } else {
+                setView('playlists');
+            }
+        }
+
+        function openPlaylistModal(e, trackId) {
+            e.stopPropagation();
+            pendingTrackId = trackId;
+            const modal = document.getElementById('playlist-modal');
+            const list = document.getElementById('playlist-modal-list');
+
+            list.innerHTML = playlists.length ? playlists.map(p => `
+                <div onclick="addTrackToPlaylist(${p.id}, ${trackId})" class="p-3 bg-zinc-800/50 hover:bg-zinc-800 rounded-lg mb-2 cursor-pointer flex justify-between items-center group transition">
+                    <span class="font-bold">${p.name}</span>
+                    <span class="text-xs text-zinc-500 group-hover:text-white">${p.tracks.length} songs</span>
+                </div>
+            `).join('') : '<p class="text-zinc-500 text-center py-4">No playlists yet</p>';
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePlaylistModal() {
+            document.getElementById('playlist-modal').classList.add('hidden');
+            pendingTrackId = null;
+        }
+
+        function addTrackToPlaylist(playlistId, trackId) {
+            const pl = playlists.find(p => p.id === playlistId);
+            if (pl) {
+                if (!pl.tracks.includes(trackId)) {
+                    pl.tracks.push(trackId);
+                    savePlaylists();
+                    alert(`Added to ${pl.name}`);
+                } else {
+                    alert('Track already in playlist');
+                }
+            }
+            closePlaylistModal();
+        }
+
+        function viewPlaylist(playlistId) {
+            currentPlaylistViewId = playlistId;
+            setView('playlist-details');
+        }
+
+        function removeTrackFromPlaylist(e, playlistId, trackId) {
+            e.stopPropagation();
+            const pl = playlists.find(p => p.id === playlistId);
+            if (pl) {
+                pl.tracks = pl.tracks.filter(id => id !== trackId);
+                savePlaylists();
+                renderCurrentView(); // Re-render to show removal
+            }
+        }
+
+        function deletePlaylist(playlistId) {
+            if (confirm('Are you sure you want to delete this playlist?')) {
+                playlists = playlists.filter(p => p.id !== playlistId);
+                savePlaylists();
+                setView('playlists');
+            }
         }
 
         // ========== SEARCH ==========
@@ -340,8 +478,12 @@
         function setView(view) {
             currentView = view;
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('sidebar-active', 'bg-zinc-900'));
-            const activeBtn = document.getElementById(`nav-${view}`);
+
+            // Highlight nav item (handle playlist-details case)
+            const navId = view === 'playlist-details' ? 'nav-playlists' : `nav-${view}`;
+            const activeBtn = document.getElementById(navId);
             if (activeBtn) activeBtn.classList.add('sidebar-active');
+
             renderCurrentView();
         }
 
@@ -376,10 +518,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="hidden md:block bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-                            <h3 class="text-lg font-bold mb-3">Quick Play</h3>
-                            <button onclick="shuffleAll()" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-full text-sm flex items-center transition">
-                                <i class="fas fa-random mr-2 text-orange-500"></i> Shuffle All
+                        <div class="hidden md:block bg-zinc-900 border border-zinc-800 p-6 rounded-2xl" onclick="createNewPlaylist()">
+                            <h3 class="text-lg font-bold mb-3">Quick Create</h3>
+                            <button class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-full text-sm flex items-center transition w-full justify-center">
+                                <i class="fas fa-plus mr-2 text-orange-500"></i> New Playlist
                             </button>
                         </div>
                     </div>
@@ -419,15 +561,48 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div onclick="playFavorites()" class="bg-gradient-to-br from-orange-600/20 to-orange-900/10 border border-orange-500/20 p-6 rounded-2xl cursor-pointer hover:border-orange-500 transition">
                             <i class="fas fa-heart text-3xl text-orange-500 mb-4"></i>
-                            <h3 class="font-bold">All Tracks</h3>
+                            <h3 class="font-bold">Liked / All</h3>
                             <p class="text-sm text-zinc-500">${mediaLibrary.length} items</p>
                         </div>
-                        <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl opacity-50">
+                        <div onclick="createNewPlaylist()" class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl cursor-pointer hover:bg-zinc-800 transition flex flex-col justify-center items-center border-dashed border-2">
                             <i class="fas fa-plus text-3xl text-zinc-600 mb-4"></i>
                             <h3 class="font-bold text-zinc-500">Create Playlist</h3>
-                            <p class="text-sm text-zinc-600">Coming soon</p>
                         </div>
+                        ${playlists.map(p => `
+                            <div onclick="viewPlaylist(${p.id})" class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl cursor-pointer hover:border-orange-500 transition relative group">
+                                <i class="fas fa-list-music text-3xl text-zinc-600 mb-4 group-hover:text-orange-500 transition"></i>
+                                <h3 class="font-bold">${p.name}</h3>
+                                <p class="text-sm text-zinc-500">${p.tracks.length} tracks</p>
+                                <button onclick="event.stopPropagation(); deletePlaylist(${p.id})" class="absolute top-4 right-4 text-zinc-700 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `).join('')}
                     </div>
+                `;
+            } else if (currentView === 'playlist-details' && currentPlaylistViewId) {
+                const pl = playlists.find(p => p.id === currentPlaylistViewId);
+                const plTracks = pl ? pl.tracks.map(tid => mediaLibrary.find(m => m.id === tid)).filter(t => t) : [];
+
+                container.innerHTML = `
+                   <div class="mb-6">
+                        <button onclick="setView('playlists')" class="text-zinc-500 hover:text-white mb-4 flex items-center"><i class="fas fa-arrow-left mr-2"></i> Back to Playlists</button>
+                        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div>
+                                <h2 class="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">${pl ? pl.name : 'Unknown'}</h2>
+                                <p class="text-zinc-500">${plTracks.length} tracks • Playlist</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <button onclick="playPlaylist(${currentPlaylistViewId})" class="bg-orange-500 text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition flex items-center">
+                                    <i class="fas fa-play mr-2"></i> Play
+                                </button>
+                                <button onclick="deletePlaylist(${currentPlaylistViewId})" class="bg-zinc-800 text-white px-4 py-3 rounded-full font-bold hover:bg-red-900/50 hover:text-red-500 transition">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                   </div>
+                   <div class="space-y-1">
+                        ${plTracks.length ? plTracks.map((item, i) => renderPlaylistRow(item, i, currentPlaylistViewId)).join('') : '<p class="text-zinc-600 py-12 text-center">No tracks yet. Go to Music Library to add some!</p>'}
+                   </div>
                 `;
             }
         }
@@ -447,9 +622,12 @@
                         </div>
                         ${isPlaying ? '<div class="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>' : ''}
                     </div>
-                    <div class="p-2">
-                        <div class="font-medium truncate text-xs">${item.name}</div>
-                        <div class="text-[10px] text-zinc-500 truncate">${item.artist || 'Unknown'}</div>
+                    <div class="p-2 flex justify-between items-start">
+                        <div class="overflow-hidden">
+                            <div class="font-medium truncate text-xs">${item.name}</div>
+                            <div class="text-[10px] text-zinc-500 truncate">${item.artist || 'Unknown'}</div>
+                        </div>
+                        <button onclick="openPlaylistModal(event, ${item.id})" class="text-zinc-600 hover:text-white ml-2"><i class="fas fa-plus-circle"></i></button>
                     </div>
                 </div>
             `;
@@ -467,7 +645,24 @@
                         <div class="font-medium truncate text-xs md:text-sm ${isPlaying ? 'text-orange-500' : ''}">${item.name}</div>
                         <div class="text-[10px] md:text-xs text-zinc-500 truncate">${item.artist || 'Unknown'}</div>
                     </div>
-                    <div class="hidden md:block text-xs text-zinc-600 mr-4 shrink-0">${item.album || ''}</div>
+                    <button onclick="openPlaylistModal(event, ${item.id})" class="text-zinc-600 hover:text-white p-2"><i class="fas fa-plus-circle"></i></button>
+                </div>
+            `;
+        }
+
+        function renderPlaylistRow(item, index, playlistId) {
+            const isPlaying = playQueue[currentTrackIndex]?.id === item.id;
+            return `
+                <div class="group flex items-center ${isPlaying ? 'now-playing' : 'bg-zinc-950 hover:bg-zinc-900/50'} p-2 md:p-3 rounded-lg transition cursor-pointer border border-transparent hover:border-zinc-800" onclick="playFromPlaylist(${playlistId}, ${index})">
+                    <div class="w-6 md:w-8 text-center text-zinc-600 text-xs md:text-sm mr-2 md:mr-3 shrink-0">${index + 1}</div>
+                    <div class="relative w-8 h-8 md:w-10 md:h-10 mr-2 md:mr-3 shrink-0">
+                         <img src="${item.coverArt || generatePlaceholder(item.name)}" class="w-full h-full object-cover rounded bg-zinc-800">
+                    </div>
+                    <div class="flex-1 overflow-hidden min-w-0">
+                        <div class="font-medium truncate text-xs md:text-sm ${isPlaying ? 'text-orange-500' : ''}">${item.name}</div>
+                         <div class="text-[10px] md:text-xs text-zinc-500 truncate">${item.artist || 'Unknown'}</div>
+                    </div>
+                    <button onclick="removeTrackFromPlaylist(event, ${playlistId}, ${item.id})" class="text-zinc-600 hover:text-red-500 p-2 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-minus-circle"></i></button>
                 </div>
             `;
         }
@@ -498,12 +693,34 @@
             return `https://placehold.co/300x300/111/${color}?text=${encodeURIComponent(title.slice(0, 8))}`;
         }
 
-        // ========== PLAYBACK LOGIC (Unchanged) ==========
+        // ========== PLAYBACK LOGIC ==========
         function playFromLibrary(id) {
             const allTracks = filteredLibrary.filter(m => m.type === 'audio' || m.src);
             playQueue = [...allTracks];
             currentTrackIndex = playQueue.findIndex(t => t.id === id);
             if (currentTrackIndex === -1) currentTrackIndex = 0;
+            playCurrentTrack();
+        }
+
+        function playPlaylist(playlistId) {
+            const pl = playlists.find(p => p.id === playlistId);
+            if (!pl || !pl.tracks.length) return;
+
+            const plTracks = pl.tracks.map(tid => mediaLibrary.find(m => m.id === tid)).filter(t => t);
+            playQueue = plTracks;
+            currentTrackIndex = 0;
+            playCurrentTrack();
+        }
+
+        function playFromPlaylist(playlistId, index) {
+            const pl = playlists.find(p => p.id === playlistId);
+            if (!pl || !pl.tracks.length) return;
+
+            // If queue is already this playlist, just jump
+            // Since we don't track 'active playlist ID' globally, we can just rebuild queue for simplicity
+            const plTracks = pl.tracks.map(tid => mediaLibrary.find(m => m.id === tid)).filter(t => t);
+            playQueue = plTracks;
+            currentTrackIndex = index;
             playCurrentTrack();
         }
 
@@ -527,7 +744,7 @@
             if (!item.src && !item.blob) return;
 
             const url = item.blob ? URL.createObjectURL(item.blob) : item.src;
-            
+
             // For video types played as audio (if desired) or simple audio
             audioPlayer.src = url;
             audioPlayer.play();
@@ -601,7 +818,7 @@
             const btn = document.getElementById('player-play-btn');
             const isPaused = audioPlayer.paused;
             btn.innerHTML = isPaused ? '<i class="fas fa-play ml-1"></i>' : '<i class="fas fa-pause"></i>';
-            if(waveform) waveform.classList.toggle('waveform-paused', isPaused);
+            if (waveform) waveform.classList.toggle('waveform-paused', isPaused);
         }
 
         function toggleShuffle() {
@@ -674,7 +891,7 @@
         document.getElementById('file-upload').addEventListener('change', async (e) => {
             // Upload logic handled by IndexedDB in previous versions or future updates
         });
-        
+
         // Listener updates
         audioPlayer.ontimeupdate = () => {
             const cur = audioPlayer.currentTime;
@@ -682,10 +899,10 @@
             const curEl = document.getElementById('player-current');
             const durEl = document.getElementById('player-duration');
             const seekEl = document.getElementById('player-seek');
-            
-            if(curEl) curEl.innerText = formatTime(cur);
-            if(durEl) durEl.innerText = formatTime(dur);
-            if(seekEl) {
+
+            if (curEl) curEl.innerText = formatTime(cur);
+            if (durEl) durEl.innerText = formatTime(dur);
+            if (seekEl) {
                 seekEl.max = dur;
                 seekEl.value = cur;
             }
@@ -702,4 +919,5 @@
         }
     </script>
 </body>
+
 </html>
