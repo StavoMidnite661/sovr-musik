@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "title": "El Costal de Memorias (The Sack of Memories)",
         "artist": "Tunee",
@@ -27,7 +27,7 @@
         "title": "DON'T ASK ABOUT ME",
         "artist": "Tunee",
         "img": "https://placehold.co/300x300/000/aa00aa?text=Dont+Ask",
-        "src": "tracks/\"DON'T ASK ABOUT ME\".mp4"
+        "src": "tracks/don_t_ask_about_me.mp4"
     },
     {
         "title": "Fatal Seduction",
@@ -1125,7 +1125,7 @@
         "title": "Unapologetic",
         "artist": "Tunee",
         "img": "https://placehold.co/300x300/000/ff0000?text=Unapologetic",
-        "src": "tracks/Tunee_Unapologetic.mp4"
+        "src": "tracks/tunee_unapologetic.mp4"
     },
     {
         "title": "Vein-Wrapped Chaos",
@@ -1245,7 +1245,7 @@
         "title": "Wildfire",
         "artist": "Tunee",
         "img": "https://placehold.co/300x300/000/ff3300?text=Wildfire",
-        "src": "tracks/Tunee_Wildfire.mp4"
+        "src": "tracks/tunee_wildfire.mp4"
     },
     {
         "title": "X Flow Digital",

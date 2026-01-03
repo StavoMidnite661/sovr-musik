@@ -4,6 +4,10 @@
 .kilocodemodes
 .kilocodeignore
 browser-vision-server
+starthere.md
+AGENT_HANDOFF.md
+PROJECT_MAP.md
+
 # Firebase and deployment
 .firebase/
 firebase-debug.log
