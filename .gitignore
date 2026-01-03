@@ -3,7 +3,7 @@
 .kilocode/
 .kilocodemodes
 .kilocodeignore
-
+browser-vision-server
 # Firebase and deployment
 .firebase/
 firebase-debug.log
@@ -128,3 +128,9 @@ package*.json
 *.webm
 *.screenshot
 *.snap
+.vercel
+.env*.local
+
+# Clutter directories
+browser-vision-server/
+old_clutter/

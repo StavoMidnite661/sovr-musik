@@ -1716,10 +1716,10 @@
       await importLibrary(f);
       els.importPicker.value = '';
     });
-    els.resetBtn.addEventListener('click', () => {
+    els.resetBtn.addEventListener('click', async () => {
       if (!confirm('Reset library to defaults? (Remote library resets, local uploads are always session-only.)')) return;
       localStorage.removeItem('sovr.library.v1');
-      boot(true);
+      await boot(true);
       toast('Library reset.', 'ok');
     });
 
@@ -1783,7 +1783,7 @@
     // Boot
     // ---------------------------
 
-    function boot(forceReset=false) {
+    async function boot(forceReset=false) {
       // reset ephemeral state
       state.queue = [];
       state.activeId = null;
@@ -1799,7 +1799,21 @@
 
       // Load tracks
       const saved = (!forceReset) ? loadLibrary() : null;
-      const base = saved && saved.length ? saved : seedTracks;
+      let base = saved && saved.length ? saved : seedTracks;
+
+      // Try to load tracks.json if available
+      try {
+        const response = await fetch('tracks.json');
+        if (response.ok) {
+          const json = await response.json();
+          if (Array.isArray(json)) {
+            base = json;
+            console.log('Loaded tracks from tracks.json:', base.length, 'tracks');
+          }
+        }
+      } catch (e) {
+        console.log('Could not load tracks.json, using defaults');
+      }
 
       state.tracks = base.map(t => normalizeTrack(t, 'remote'));
 
@@ -1818,7 +1832,7 @@
       setAmbience(state.ambience);
 
       // Preload duration for visible tracks (best-effort)
-      warmDurations();
+      await warmDurations();
     }
 
     async function warmDurations() {
@@ -1850,12 +1864,14 @@
       applyFilters();
     }
 
-    boot(false);
+    (async () => {
+      await boot(false);
 
-    // First-time friendly hint
-    setTimeout(() => {
-      toast('Tip: drag & drop your own tracks (mp3/mp4). Local uploads unlock full waveform analysis.', 'info', 4800);
-    }, 700);
+      // First-time friendly hint
+      setTimeout(() => {
+        toast('Tip: drag & drop your own tracks (mp3/mp4). Local uploads unlock full waveform analysis.', 'info', 4800);
+      }, 700);
+    })();
   </script>
 </body>
 </html>
