@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOVR Musik — The Sovereign Stack</title>
+  <meta name="description" content="SOVR Musik — AI-powered music streaming dashboard for The Sovereign Stack." />
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Font Awesome 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+  <style>
+    :root{
+      --bg0:#070A10;
+      --bg1:#0B1220;
+      --glass: rgba(255,255,255,.06);
+      --glass2: rgba(255,255,255,.10);
+      --stroke: rgba(255,255,255,.10);
+      --accent: #a78bfa; /* violet-400 */
+      --accent2: #22d3ee; /* cyan-400 */
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+
+      --reactHue: 265;
+      --reactSat: 90%;
+      --reactLum: 55%;
+      --reactAlpha: 0.35;
+    }
+
+    html, body { height: 100%; }
+    body {
+      background:
+        radial-gradient(1000px 650px at 20% 0%, hsla(var(--reactHue), var(--reactSat), 60%, calc(var(--reactAlpha) * .8)), transparent 55%),
+        radial-gradient(900px 700px at 90% 15%, hsla(190, 90%, 55%, calc(var(--reactAlpha) * .55)), transparent 50%),
+        radial-gradient(700px 500px at 60% 100%, rgba(255,255,255,.05), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: rgba(255,255,255,.92);
+    }
+
+    .noise::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="260" height="260" filter="url(%23n)" opacity="0.15"/></svg>');
+      mix-blend-mode: overlay;
+      opacity: .30;
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .glow {
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.06),
+        0 30px 80px rgba(0,0,0,.55);
+    }
+
+    .subtle-ring:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(167,139,250,.25);
+      border-color: rgba(167,139,250,.45) !important;
+    }
+
+    .range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      overflow: hidden;
+    }
+    .range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: -500px 0 0 500px rgba(167,139,250,.65);
+      border: 1px solid rgba(255,255,255,.25);
+    }
+    .range::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    .chip {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .card:hover {
+      border-color: rgba(167,139,250,.35);
+      transform: translateY(-1px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+
+    .cover {
+      background: radial-gradient(120px 120px at 25% 30%, rgba(167,139,250,.8), transparent 60%),
+                  radial-gradient(140px 120px at 70% 70%, rgba(34,211,238,.65), transparent 60%),
+                  linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    }
+
+    .mono { font-variant-ligatures: none; font-feature-settings: "ss01" 1, "ss02" 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { height: 10px; width: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 999px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,.04); }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none !important; transform: none !important; }
+    }
+
+    /* Keep content above the player */
+    .pb-player { padding-bottom: 170px; }
+    @media (min-width: 768px) { .pb-player { padding-bottom: 152px; } }
+  </style>
+</head>
+
+<body class="noise">
+  <!-- Hidden media elements -->
+  <audio id="audioEl" preload="metadata" crossorigin="anonymous"></audio>
+  <video id="videoEl" preload="metadata" playsinline crossorigin="anonymous" class="hidden" style="max-height: 50vh;"></video>
+
+  <!-- Top App Shell -->
+  <div class="min-h-screen pb-player">
+    <header class="sticky top-0 z-40">
+      <div class="glass glow">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl cover border border-white/10"></div>
+              <div>
+                <div class="flex items-baseline gap-2">
+                  <h1 class="text-lg sm:text-xl font-semibold tracking-wide">SOVR Musik</h1>
+                  <span class="hidden sm:inline text-xs px-2 py-1 rounded-full chip text-white/80">AI-powered dashboard</span>
+                </div>
+                <p class="text-xs text-white/60">Tunee catalog • Elegance in the Shadows</p>
+              </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-2 text-xs text-white/70">
+              <span class="px-2 py-1 rounded-full chip"><i class="fas fa-keyboard mr-1"></i>Space play • ←/→ seek • Ctrl+→ next</span>
+              <button id="helpBtn" class="px-2 py-1 rounded-full chip hover:bg-white/10"><i class="fas fa-question-circle mr-1"></i>Help</button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="md:col-span-6">
+              <label class="text-xs text-white/60">Search</label>
+              <div class="mt-1 flex items-center gap-2">
+                <div class="flex-1 relative">
+                  <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/45"></i>
+                  <input id="searchInput" class="w-full pl-9 pr-3 py-2 rounded-xl bg-white/5 border border-white/10 subtle-ring text-sm" placeholder="Search title, artist, tags…" />
+                </div>
+                <button id="clearSearchBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10 text-sm" title="Clear">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="text-xs text-white/60">Filter</label>
+              <div class="mt-1 grid grid-cols-2 gap-2">
+                <select id="typeFilter" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 subtle-ring text-sm">
+                  <option value="all">All media</option>
+                  <option value="audio">Audio</option>
+                  <option value="video">Video</option>
+                </select>
+                <select id="tagFilter" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 subtle-ring text-sm">
+                  <option value="all">All tags</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="text-xs text-white/60">Actions</label>
+              <div class="mt-1 grid grid-cols-2 gap-2">
+                <button id="uploadBtn" class="px-3 py-2 rounded-xl bg-violet-500/20 border border-violet-300/20 hover:bg-violet-500/25 subtle-ring text-sm">
+                  <i class="fas fa-cloud-upload-alt mr-2"></i>Upload
+                </button>
+                <button id="queueBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10 subtle-ring text-sm">
+                  <i class="fas fa-list mr-2"></i>Queue
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span id="statsPill" class="text-xs px-3 py-1.5 rounded-full chip text-white/75"></span>
+              <span id="corsPill" class="hidden text-xs px-3 py-1.5 rounded-full border border-amber-300/30 bg-amber-500/10 text-amber-200"></span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-white/60">Sort</label>
+              <select id="sortSelect" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 subtle-ring text-sm">
+                <option value="recent">Recently added</option>
+                <option value="title">Title (A→Z)</option>
+                <option value="artist">Artist (A→Z)</option>
+                <option value="duration">Duration (short→long)</option>
+              </select>
+              <button id="themeBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10 subtle-ring text-sm" title="Toggle ambience">
+                <i class="fas fa-adjust mr-2"></i>Ambience
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <!-- Dropzone -->
+      <section id="dropzone" class="glass glow rounded-2xl p-5 border-dashed border-white/15">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 class="text-base font-semibold tracking-wide">Discovery Grid</h2>
+            <p class="text-sm text-white/60 mt-1">Drag & drop audio/video files anywhere on this page to add them to your session. Files stay local to your browser.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="exportBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10 text-sm"><i class="fas fa-file-export mr-2"></i>Export library</button>
+            <button id="importBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10 text-sm"><i class="fas fa-file-import mr-2"></i>Import</button>
+            <button id="resetBtn" class="px-3 py-2 rounded-xl border border-rose-300/25 bg-rose-500/10 hover:bg-rose-500/15 text-rose-200 text-sm"><i class="fas fa-trash-alt mr-2"></i>Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Grid -->
+      <section class="mt-5">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <h3 class="text-sm font-semibold text-white/80 tracking-wider uppercase">Tunee Catalog</h3>
+          <div class="flex items-center gap-2">
+            <button id="gridMinus" class="px-3 py-2 rounded-xl chip hover:bg-white/10" title="Fewer columns"><i class="fas fa-minus"></i></button>
+            <button id="gridPlus" class="px-3 py-2 rounded-xl chip hover:bg-white/10" title="More columns"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+
+        <div id="grid" class="grid gap-3"></div>
+
+        <div id="emptyState" class="hidden mt-10 text-center">
+          <div class="mx-auto max-w-lg glass rounded-2xl p-6">
+            <div class="text-2xl font-semibold">No tracks found</div>
+            <p class="text-sm text-white/60 mt-2">Try a different search, change filters, or upload local files.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Queue Drawer -->
+  <aside id="queueDrawer" class="fixed inset-y-0 right-0 w-full sm:w-[420px] translate-x-full transition-transform duration-300 z-50">
+    <div class="h-full glass glow">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold">Queue</div>
+          <div class="text-xs text-white/60">Drag to reorder • Double-click to play</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="clearQueueBtn" class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/10 text-sm">Clear</button>
+          <button id="closeQueueBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div class="p-3">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="text-xs text-white/60">Now & next</div>
+          <button id="addFilteredToQueueBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10"><i class="fas fa-plus mr-1"></i>Add filtered</button>
+        </div>
+        <ul id="queueList" class="space-y-2"></ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="fixed inset-0 hidden z-50">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="glass glow rounded-2xl w-full max-w-2xl">
+        <div class="p-4 border-b border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold">SOVR Musik — Quick Help</div>
+            <div class="text-xs text-white/60">Local-first, single-page demo</div>
+          </div>
+          <button id="helpCloseBtn" class="px-3 py-2 rounded-xl chip hover:bg-white/10" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-5 space-y-4 text-sm text-white/80">
+          <div>
+            <div class="font-semibold text-white">Keyboard</div>
+            <ul class="mt-2 grid sm:grid-cols-2 gap-x-4 gap-y-1 text-white/70">
+              <li><span class="mono">Space</span> — Play/Pause</li>
+              <li><span class="mono">Ctrl + →</span> — Next</li>
+              <li><span class="mono">Ctrl + ←</span> — Previous</li>
+              <li><span class="mono">→ / ←</span> — Seek ±5s</li>
+              <li><span class="mono">M</span> — Mute</li>
+              <li><span class="mono">/</span> — Focus search</li>
+            </ul>
+          </div>
+          <div>
+            <div class="font-semibold text-white">Visualizer</div>
+            <p class="text-white/70 mt-1">Waveform uses the Web Audio API. Some remote media servers block analysis unless they send CORS headers. Local uploads always work.</p>
+          </div>
+          <div class="text-xs text-white/60 pt-2 border-t border-white/10">
+            © 2025 SOVR Development Holdings LLC — Demo UI build
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="fixed top-4 right-4 z-[60] space-y-2" id="toastRoot"></div>
+
+  <!-- Bottom Player -->
+  <footer class="fixed bottom-0 left-0 right-0 z-40">
+    <div class="glass glow">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+          <!-- Now Playing -->
+          <div class="md:col-span-4 flex items-center gap-3">
+            <div id="nowCover" class="h-12 w-12 rounded-xl cover border border-white/10 flex-shrink-0"></div>
+            <div class="min-w-0">
+              <div id="nowTitle" class="text-sm font-semibold truncate">Not playing</div>
+              <div class="flex items-center gap-2">
+                <div id="nowArtist" class="text-xs text-white/60 truncate">—</div>
+                <span id="nowBadge" class="hidden text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white/70">AUDIO</span>
+              </div>
+              <div class="flex items-center gap-2 mt-1">
+                <button id="downloadBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Download">
+                  <i class="fas fa-download mr-1"></i>Download
+                </button>
+                <button id="openVideoBtn" class="hidden text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Show/Hide video">
+                  <i class="fas fa-video mr-1"></i>Video
+                </button>
+                <span id="nowMeta" class="text-[10px] text-white/45 truncate"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="md:col-span-4">
+            <div class="flex items-center justify-center gap-3">
+              <button id="shuffleBtn" class="w-10 h-10 rounded-xl chip hover:bg-white/10" title="Shuffle">
+                <i class="fas fa-random"></i>
+              </button>
+              <button id="prevBtn" class="w-10 h-10 rounded-xl chip hover:bg-white/10" title="Previous">
+                <i class="fas fa-step-backward"></i>
+              </button>
+              <button id="playBtn" class="w-12 h-12 rounded-2xl bg-violet-500/25 border border-violet-300/25 hover:bg-violet-500/30 subtle-ring" title="Play/Pause">
+                <i id="playIcon" class="fas fa-play"></i>
+              </button>
+              <button id="nextBtn" class="w-10 h-10 rounded-xl chip hover:bg-white/10" title="Next">
+                <i class="fas fa-step-forward"></i>
+              </button>
+              <button id="repeatBtn" class="w-10 h-10 rounded-xl chip hover:bg-white/10" title="Repeat">
+                <i class="fas fa-redo"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Seek/Volume -->
+          <div class="md:col-span-4">
+            <div class="flex items-center gap-3">
+              <div class="w-full">
+                <div class="flex items-center justify-between text-[11px] text-white/55">
+                  <span id="curTime">0:00</span>
+                  <span id="durTime">0:00</span>
+                </div>
+                <input id="seek" type="range" min="0" max="1000" value="0" class="range mt-1" />
+              </div>
+              <div class="hidden sm:flex items-center gap-2 w-40">
+                <i class="fas fa-volume-down text-white/60"></i>
+                <input id="volume" type="range" min="0" max="100" value="85" class="range" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div class="md:col-span-8">
+            <div class="glass rounded-2xl border border-white/10 px-3 py-2">
+              <div class="flex items-center justify-between">
+                <div class="text-xs text-white/60">Waveform</div>
+                <div class="flex items-center gap-2">
+                  <button id="vizModeBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Toggle waveform/spectrum">Mode</button>
+                  <button id="vizOnBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Toggle visualizer">On</button>
+                </div>
+              </div>
+              <canvas id="viz" height="48" class="w-full mt-2 rounded-xl"></canvas>
+            </div>
+          </div>
+          <div class="md:col-span-4">
+            <div class="glass rounded-2xl border border-white/10 px-3 py-2 h-full">
+              <div class="flex items-center justify-between">
+                <div class="text-xs text-white/60">Session</div>
+                <button id="copyNowBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Copy now playing info">Copy</button>
+              </div>
+              <div class="mt-2 text-xs text-white/70 space-y-1">
+                <div class="flex items-center justify-between gap-2"><span class="text-white/50">Shuffle</span><span id="shuffleState" class="mono">OFF</span></div>
+                <div class="flex items-center justify-between gap-2"><span class="text-white/50">Repeat</span><span id="repeatState" class="mono">OFF</span></div>
+                <div class="flex items-center justify-between gap-2"><span class="text-white/50">Queue</span><span id="queueCount" class="mono">0</span></div>
+                <div class="pt-2 border-t border-white/10 text-[11px] text-white/50">Tip: Upload local files to unlock full waveform analysis if CORS blocks remote tracks.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Panel -->
+        <div id="videoPanel" class="hidden mt-3">
+          <div class="glass rounded-2xl border border-white/10 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs text-white/60">Video Output</div>
+              <div class="flex items-center gap-2">
+                <button id="pipBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Picture-in-Picture">PiP</button>
+                <button id="hideVideoBtn" class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" title="Hide video">Hide</button>
+              </div>
+            </div>
+            <div class="mt-2 rounded-xl overflow-hidden border border-white/10">
+              <div class="aspect-video bg-black/40 flex items-center justify-center">
+                <div id="videoMount" class="w-full h-full"></div>
+              </div>
+            </div>
+            <div class="mt-2 text-[11px] text-white/55">Video uses the same transport controls as the player.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- File inputs (hidden) -->
+  <input id="filePicker" type="file" multiple accept="audio/*,video/*" class="hidden" />
+  <input id="importPicker" type="file" accept="application/json" class="hidden" />
+
+  <script>
+    // ---------------------------
+    // SOVR Musik — single-page demo
+    // ---------------------------
+
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    const audioEl = $('#audioEl');
+    const videoEl = $('#videoEl');
+
+    // App state
+    const state = {
+      tracks: [],
+      addedCounter: 0,
+      filtered: [],
+      activeId: null,
+      queue: [],
+      shuffle: false,
+      repeat: 'off', // off | one | all
+      userInteracted: false,
+      gridCols: Number(localStorage.getItem('sovr.gridCols') || 6),
+      ambience: localStorage.getItem('sovr.ambience') || 'reactive', // reactive | calm
+
+      viz: {
+        enabled: true,
+        mode: localStorage.getItem('sovr.vizMode') || 'wave', // wave | bars
+        ctx: null,
+        analyser: null,
+        source: null,
+        raf: null,
+        data: null,
+        freq: null,
+        corsLikelyBlocked: false,
+      }
+    };
+
+    const els = {
+      grid: $('#grid'),
+      emptyState: $('#emptyState'),
+      searchInput: $('#searchInput'),
+      clearSearchBtn: $('#clearSearchBtn'),
+      typeFilter: $('#typeFilter'),
+      tagFilter: $('#tagFilter'),
+      sortSelect: $('#sortSelect'),
+      statsPill: $('#statsPill'),
+      corsPill: $('#corsPill'),
+
+      // player
+      nowCover: $('#nowCover'),
+      nowTitle: $('#nowTitle'),
+      nowArtist: $('#nowArtist'),
+      nowBadge: $('#nowBadge'),
+      nowMeta: $('#nowMeta'),
+      playBtn: $('#playBtn'),
+      playIcon: $('#playIcon'),
+      prevBtn: $('#prevBtn'),
+      nextBtn: $('#nextBtn'),
+      shuffleBtn: $('#shuffleBtn'),
+      repeatBtn: $('#repeatBtn'),
+      downloadBtn: $('#downloadBtn'),
+      openVideoBtn: $('#openVideoBtn'),
+
+      seek: $('#seek'),
+      curTime: $('#curTime'),
+      durTime: $('#durTime'),
+      volume: $('#volume'),
+
+      viz: $('#viz'),
+      vizOnBtn: $('#vizOnBtn'),
+      vizModeBtn: $('#vizModeBtn'),
+
+      shuffleState: $('#shuffleState'),
+      repeatState: $('#repeatState'),
+      queueCount: $('#queueCount'),
+      copyNowBtn: $('#copyNowBtn'),
+
+      // video
+      videoPanel: $('#videoPanel'),
+      videoMount: $('#videoMount'),
+      hideVideoBtn: $('#hideVideoBtn'),
+      pipBtn: $('#pipBtn'),
+
+      // actions
+      uploadBtn: $('#uploadBtn'),
+      filePicker: $('#filePicker'),
+      exportBtn: $('#exportBtn'),
+      importBtn: $('#importBtn'),
+      importPicker: $('#importPicker'),
+      resetBtn: $('#resetBtn'),
+      themeBtn: $('#themeBtn'),
+
+      // grid cols
+      gridMinus: $('#gridMinus'),
+      gridPlus: $('#gridPlus'),
+
+      // queue drawer
+      queueBtn: $('#queueBtn'),
+      queueDrawer: $('#queueDrawer'),
+      closeQueueBtn: $('#closeQueueBtn'),
+      clearQueueBtn: $('#clearQueueBtn'),
+      addFilteredToQueueBtn: $('#addFilteredToQueueBtn'),
+      queueList: $('#queueList'),
+
+      // help
+      helpBtn: $('#helpBtn'),
+      helpModal: $('#helpModal'),
+      helpCloseBtn: $('#helpCloseBtn'),
+
+      toastRoot: $('#toastRoot')
+    };
+
+    // ---------------------------
+    // Seed catalog (remote + demo)
+    // ---------------------------
+
+    const seedTracks = [
+      {
+        title: 'Shadow Elegy',
+        artist: 'Tunee • Sovereign Lab',
+        src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        type: 'audio',
+        tags: ['ambient','cinematic','dark'],
+        album: 'Elegance in the Shadows',
+        year: 2025,
+        coverHint: 'violet'
+      },
+      {
+        title: 'Midnight Protocol',
+        artist: 'Tunee • Stackwave',
+        src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+        type: 'audio',
+        tags: ['synth','cyber','focus'],
+        album: 'SOVR Sessions',
+        year: 2025,
+        coverHint: 'cyan'
+      },
+      {
+        title: 'Neon Treaty',
+        artist: 'Tunee • Parallax',
+        src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+        type: 'audio',
+        tags: ['electro','uplift','night'],
+        album: 'Sovereign Skyline',
+        year: 2025,
+        coverHint: 'mix'
+      },
+      {
+        title: 'SOVR Signal (Video)',
+        artist: 'Tunee • Visual Unit',
+        src: 'https://www.w3schools.com/html/mov_bbb.mp4',
+        type: 'video',
+        tags: ['video','demo'],
+        album: 'Motion Studies',
+        year: 2025,
+        coverHint: 'video'
+      },
+      {
+        title: 'Noir Circuit',
+        artist: 'Tunee • HexaNova',
+        src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+        type: 'audio',
+        tags: ['dark','beats','drive'],
+        album: 'Blackglass',
+        year: 2025,
+        coverHint: 'rose'
+      },
+      {
+        title: 'Quiet Sovereignty',
+        artist: 'Tunee • Atlas',
+        src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+        type: 'audio',
+        tags: ['calm','study','ambient'],
+        album: 'Lowlight',
+        year: 2025,
+        coverHint: 'calm'
+      }
+    ];
+
+    // ---------------------------
+    // Persistence (metadata only)
+    // ---------------------------
+
+    function loadLibrary() {
+      const raw = localStorage.getItem('sovr.library.v1');
+      if (!raw) return null;
+      try {
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.tracks)) return null;
+        // Note: local uploaded files cannot persist across reloads (object URLs die), so we only keep remote ones.
+        const tracks = obj.tracks.filter(t => t && typeof t.src === 'string' && /^https?:/i.test(t.src));
+        return tracks;
+      } catch { return null; }
+    }
+
+    function saveLibrary() {
+      const remote = state.tracks.filter(t => /^https?:/i.test(t.src));
+      localStorage.setItem('sovr.library.v1', JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        tracks: remote
+      }));
+    }
+
+    // ---------------------------
+    // Utilities
+    // ---------------------------
+
+    const uid = () => crypto.getRandomValues(new Uint32Array(4)).join('-');
+
+    function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+    function fmtTime(sec) {
+      if (!isFinite(sec) || sec < 0) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${String(s).padStart(2,'0')}`;
+    }
+
+    function safeText(s) {
+      return String(s ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    function toast(msg, type='info', timeout=2800) {
+      const colors = {
+        info: 'border-white/10 bg-white/5',
+        ok: 'border-emerald-300/20 bg-emerald-500/10 text-emerald-100',
+        warn: 'border-amber-300/25 bg-amber-500/10 text-amber-100',
+        bad: 'border-rose-300/25 bg-rose-500/10 text-rose-100'
+      };
+      const el = document.createElement('div');
+      el.className = `glass ${colors[type] || colors.info} rounded-2xl px-4 py-3 text-sm shadow-lg max-w-sm`;
+      el.innerHTML = `<div class="flex items-start gap-3"><div class="mt-0.5 text-white/70"><i class="fas ${type==='ok'?'fa-check-circle':type==='warn'?'fa-exclamation-triangle':type==='bad'?'fa-times-circle':'fa-info-circle'}"></i></div><div class="text-white/85">${msg}</div></div>`;
+      els.toastRoot.appendChild(el);
+      setTimeout(() => {
+        el.style.transition = 'opacity 200ms ease, transform 200ms ease';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => el.remove(), 220);
+      }, timeout);
+    }
+
+    function trackToSearchBlob(t) {
+      const tags = Array.isArray(t.tags) ? t.tags.join(' ') : '';
+      return `${t.title} ${t.artist} ${t.album || ''} ${tags}`.toLowerCase();
+    }
+
+    function computeCoverStyle(t) {
+      // lightweight hint-based art
+      const hint = t.coverHint || 'mix';
+      const map = {
+        violet: ['rgba(167,139,250,.9)','rgba(99,102,241,.35)'],
+        cyan: ['rgba(34,211,238,.85)','rgba(59,130,246,.30)'],
+        rose: ['rgba(251,113,133,.75)','rgba(167,139,250,.30)'],
+        calm: ['rgba(110,231,183,.60)','rgba(34,211,238,.25)'],
+        video: ['rgba(250,204,21,.55)','rgba(34,211,238,.25)'],
+        mix: ['rgba(167,139,250,.75)','rgba(34,211,238,.35)']
+      };
+      const [a,b] = map[hint] || map.mix;
+      return `background: radial-gradient(120px 120px at 25% 30%, ${a}, transparent 60%), radial-gradient(140px 120px at 70% 70%, ${b}, transparent 60%), linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));`;
+    }
+
+    function updateGridCols() {
+      const cols = clamp(state.gridCols, 4, 8);
+      state.gridCols = cols;
+      localStorage.setItem('sovr.gridCols', String(cols));
+
+      // Responsive: cap cols on smaller screens
+      // Use Tailwind arbitrary grid template to keep it simple.
+      // We'll compute via CSS style to avoid many classes.
+      const baseCols = cols;
+      els.grid.style.gridTemplateColumns = `repeat(${Math.min(2, baseCols)}, minmax(0, 1fr))`;
+
+      // Adjust on breakpoints with media queries
+      // We'll set a CSS variable and use it in a style tag? Simpler: update a data attr and compute in resize.
+      els.grid.dataset.cols = String(cols);
+      applyResponsiveGrid();
+    }
+
+    function applyResponsiveGrid() {
+      const cols = Number(els.grid.dataset.cols || 6);
+      const w = window.innerWidth;
+      let c = cols;
+      if (w < 640) c = Math.min(2, cols);
+      else if (w < 768) c = Math.min(3, cols);
+      else if (w < 1024) c = Math.min(4, cols);
+      else if (w < 1280) c = Math.min(6, cols);
+      else c = cols;
+      els.grid.style.gridTemplateColumns = `repeat(${c}, minmax(0, 1fr))`;
+    }
+
+    // ---------------------------
+    // Track normalization
+    // ---------------------------
+
+    function normalizeTrack(t, origin='remote') {
+      const nt = {
+        id: t.id || uid(),
+        title: safeText(t.title || 'Untitled'),
+        artist: safeText(t.artist || 'Unknown Artist'),
+        album: safeText(t.album || ''),
+        year: Number.isFinite(t.year) ? t.year : undefined,
+        tags: Array.isArray(t.tags) ? t.tags.map(x => safeText(x)).filter(Boolean) : [],
+        src: t.src,
+        type: (t.type === 'video' || t.type === 'audio') ? t.type : 'audio',
+        addedAt: t.addedAt || Date.now() + (state.addedCounter++),
+        duration: Number.isFinite(t.duration) ? t.duration : null,
+        origin,
+        coverHint: t.coverHint || 'mix',
+        fileName: safeText(t.fileName || ''),
+        mime: safeText(t.mime || ''),
+      };
+      nt._blob = trackToSearchBlob(nt);
+      return nt;
+    }
+
+    // ---------------------------
+    // Filtering & sorting
+    // ---------------------------
+
+    function getTagUniverse() {
+      const set = new Set();
+      for (const t of state.tracks) for (const tg of (t.tags || [])) set.add(tg);
+      return Array.from(set).sort((a,b)=>a.localeCompare(b));
+    }
+
+    function refreshTagFilterOptions() {
+      const current = els.tagFilter.value;
+      const tags = getTagUniverse();
+      els.tagFilter.innerHTML = `<option value="all">All tags</option>` + tags.map(t => `<option value="${encodeURIComponent(t)}">${t}</option>`).join('');
+      if ([...els.tagFilter.options].some(o => o.value === current)) els.tagFilter.value = current;
+      else els.tagFilter.value = 'all';
+    }
+
+    function applyFilters() {
+      const q = els.searchInput.value.trim().toLowerCase();
+      const type = els.typeFilter.value;
+      const tag = els.tagFilter.value;
+
+      let list = [...state.tracks];
+
+      if (type !== 'all') list = list.filter(t => t.type === type);
+
+      if (tag !== 'all') {
+        const decoded = decodeURIComponent(tag);
+        list = list.filter(t => (t.tags || []).includes(decoded));
+      }
+
+      if (q) {
+        list = list.filter(t => t._blob.includes(q));
+      }
+
+      // sort
+      const s = els.sortSelect.value;
+      if (s === 'recent') list.sort((a,b) => b.addedAt - a.addedAt);
+      if (s === 'title') list.sort((a,b) => a.title.localeCompare(b.title));
+      if (s === 'artist') list.sort((a,b) => a.artist.localeCompare(b.artist));
+      if (s === 'duration') list.sort((a,b) => (a.duration ?? 1e9) - (b.duration ?? 1e9));
+
+      state.filtered = list;
+      renderGrid();
+      updateStats();
+    }
+
+    // ---------------------------
+    // Rendering
+    // ---------------------------
+
+    function renderGrid() {
+      const list = state.filtered;
+      els.grid.innerHTML = '';
+
+      if (!list.length) {
+        els.emptyState.classList.remove('hidden');
+        return;
+      }
+      els.emptyState.classList.add('hidden');
+
+      for (const t of list) {
+        const card = document.createElement('article');
+        card.className = 'card rounded-2xl p-3 transition-transform duration-200 cursor-pointer select-none';
+        card.dataset.id = t.id;
+
+        const badge = t.type === 'video'
+          ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-amber-300/25 bg-amber-500/10 text-amber-100">VIDEO</span>'
+          : '<span class="text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white/70">AUDIO</span>';
+
+        const tags = (t.tags || []).slice(0, 3).map(x => `<span class="text-[10px] px-2 py-0.5 rounded-full chip text-white/70">${x}</span>`).join('');
+
+        const dur = Number.isFinite(t.duration) ? fmtTime(t.duration) : '—';
+
+        card.innerHTML = `
+          <div class="rounded-2xl overflow-hidden border border-white/10">
+            <div class="relative h-28 cover" style="${computeCoverStyle(t)}">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
+              <button class="absolute bottom-3 left-3 w-11 h-11 rounded-2xl bg-white/10 border border-white/15 hover:bg-white/15" data-action="play" title="Play">
+                <i class="fas fa-play"></i>
+              </button>
+              <div class="absolute top-3 right-3">${badge}</div>
+            </div>
+            <div class="p-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="font-semibold text-sm truncate">${t.title}</div>
+                  <div class="text-xs text-white/60 truncate">${t.artist}</div>
+                </div>
+                <div class="text-xs text-white/55 mono">${dur}</div>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-1.5">${tags}</div>
+
+              <div class="mt-3 flex items-center justify-between">
+                <button class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" data-action="queue">
+                  <i class="fas fa-plus mr-1"></i>Queue
+                </button>
+                <button class="text-xs px-2 py-1 rounded-full chip hover:bg-white/10" data-action="details">
+                  <i class="fas fa-ellipsis-h"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Card click: play (but allow buttons)
+        card.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-action]');
+          if (btn) {
+            const act = btn.dataset.action;
+            if (act === 'play') playById(t.id);
+            if (act === 'queue') { queueAdd(t.id); toast(`Added to queue: <span class="text-white">${t.title}</span>`, 'ok'); }
+            if (act === 'details') showTrackDetails(t);
+            e.stopPropagation();
+            return;
+          }
+          playById(t.id);
+        });
+
+        els.grid.appendChild(card);
+      }
+    }
+
+    function updateStats() {
+      const total = state.tracks.length;
+      const shown = state.filtered.length;
+      const q = state.queue.length;
+      els.queueCount.textContent = String(q);
+
+      const haveDur = state.tracks.filter(t => Number.isFinite(t.duration));
+      const sum = haveDur.reduce((acc,t)=>acc + (t.duration || 0), 0);
+      const sumFmt = isFinite(sum) && sum > 0 ? `${Math.floor(sum/3600)}h ${Math.floor((sum%3600)/60)}m` : '—';
+
+      els.statsPill.textContent = `${shown}/${total} tracks • total time ${sumFmt}`;
+    }
+
+    function showTrackDetails(t) {
+      const tags = (t.tags || []).join(', ') || '—';
+      const srcType = /^blob:/i.test(t.src) ? 'local' : 'remote';
+      toast(
+        `<div class="space-y-1">
+          <div class="text-white font-semibold">${t.title}</div>
+          <div class="text-white/70">${t.artist}</div>
+          <div class="text-white/60 text-xs">${t.album ? `Album: ${t.album} • ` : ''}${t.year ? `Year: ${t.year} • ` : ''}Type: ${t.type.toUpperCase()} • Source: ${srcType}</div>
+          <div class="text-white/60 text-xs">Tags: ${tags}</div>
+        </div>`,
+        'info',
+        4500
+      );
+    }
+
+    // ---------------------------
+    // Queue
+    // ---------------------------
+
+    function queueAdd(id) {
+      if (!state.queue.includes(id)) state.queue.push(id);
+      renderQueue();
+      updateStats();
+    }
+
+    function queueClear() {
+      state.queue = [];
+      renderQueue();
+      updateStats();
+    }
+
+    function queueRemove(id) {
+      state.queue = state.queue.filter(x => x !== id);
+      renderQueue();
+      updateStats();
+    }
+
+    function renderQueue() {
+      const ids = state.queue;
+      const items = ids.map(id => state.tracks.find(t => t.id === id)).filter(Boolean);
+      els.queueList.innerHTML = '';
+
+      if (!items.length) {
+        const li = document.createElement('li');
+        li.className = 'text-sm text-white/60 p-3 rounded-2xl border border-white/10 bg-white/5';
+        li.textContent = 'Queue is empty. Add tracks from the grid.';
+        els.queueList.appendChild(li);
+        return;
+      }
+
+      items.forEach((t, idx) => {
+        const li = document.createElement('li');
+        li.className = 'glass rounded-2xl border border-white/10 p-3 flex items-center justify-between gap-3 cursor-grab';
+        li.draggable = true;
+        li.dataset.id = t.id;
+        li.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="h-10 w-10 rounded-xl border border-white/10" style="${computeCoverStyle(t)}"></div>
+            <div class="min-w-0">
+              <div class="text-sm font-semibold truncate">${idx===0 && state.activeId===t.id ? '▶ ' : ''}${t.title}</div>
+              <div class="text-xs text-white/60 truncate">${t.artist}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-2 py-1 rounded-xl chip hover:bg-white/10" data-action="play" title="Play"><i class="fas fa-play"></i></button>
+            <button class="px-2 py-1 rounded-xl chip hover:bg-white/10" data-action="remove" title="Remove"><i class="fas fa-times"></i></button>
+          </div>
+        `;
+
+        li.addEventListener('dblclick', () => playById(t.id));
+        li.addEventListener('click', (e) => {
+          const b = e.target.closest('[data-action]');
+          if (!b) return;
+          const act = b.dataset.action;
+          if (act === 'play') playById(t.id);
+          if (act === 'remove') queueRemove(t.id);
+        });
+
+        // drag reorder
+        li.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', t.id);
+          e.dataTransfer.effectAllowed = 'move';
+          li.classList.add('opacity-70');
+        });
+        li.addEventListener('dragend', () => li.classList.remove('opacity-70'));
+        li.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+        li.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const fromId = e.dataTransfer.getData('text/plain');
+          const toId = t.id;
+          if (!fromId || fromId === toId) return;
+          const fromIdx = state.queue.indexOf(fromId);
+          const toIdx = state.queue.indexOf(toId);
+          if (fromIdx < 0 || toIdx < 0) return;
+          state.queue.splice(toIdx, 0, state.queue.splice(fromIdx, 1)[0]);
+          renderQueue();
+        });
+
+        els.queueList.appendChild(li);
+      });
+    }
+
+    function openQueue(open=true) {
+      if (open) els.queueDrawer.classList.remove('translate-x-full');
+      else els.queueDrawer.classList.add('translate-x-full');
+    }
+
+    // ---------------------------
+    // Player core
+    // ---------------------------
+
+    function getActiveTrack() {
+      return state.tracks.find(t => t.id === state.activeId) || null;
+    }
+
+    function getMediaElForTrack(t) {
+      return t.type === 'video' ? videoEl : audioEl;
+    }
+
+    function stopOtherMedia(active) {
+      const other = active === audioEl ? videoEl : audioEl;
+      other.pause();
+      other.removeAttribute('src');
+      try { other.load(); } catch {}
+    }
+
+    function setNowPlayingUI(t) {
+      if (!t) {
+        els.nowTitle.textContent = 'Not playing';
+        els.nowArtist.textContent = '—';
+        els.nowMeta.textContent = '';
+        els.nowBadge.classList.add('hidden');
+        els.openVideoBtn.classList.add('hidden');
+        return;
+      }
+      els.nowCover.style = computeCoverStyle(t);
+      els.nowTitle.textContent = t.title;
+      els.nowArtist.textContent = t.artist;
+      els.nowBadge.textContent = t.type.toUpperCase();
+      els.nowBadge.classList.remove('hidden');
+      els.openVideoBtn.classList.toggle('hidden', t.type !== 'video');
+
+      const parts = [];
+      if (t.album) parts.push(t.album);
+      if (t.year) parts.push(String(t.year));
+      if (Array.isArray(t.tags) && t.tags.length) parts.push(t.tags.slice(0,3).join(' • '));
+      els.nowMeta.textContent = parts.join(' • ');
+    }
+
+    function setPlayIcon(isPlaying) {
+      els.playIcon.className = `fas ${isPlaying ? 'fa-pause' : 'fa-play'}`;
+    }
+
+    async function playById(id, {forcePlay=true} = {}) {
+      const t = state.tracks.find(x => x.id === id);
+      if (!t) return;
+
+      const wasSame = state.activeId === id;
+      state.activeId = id;
+
+      // Ensure queue has at least something sensible
+      if (!state.queue.length) {
+        // prime queue with filtered list so Next works
+        state.queue = state.filtered.map(x => x.id);
+        renderQueue();
+        updateStats();
+      }
+
+      setNowPlayingUI(t);
+
+      const el = getMediaElForTrack(t);
+      stopOtherMedia(el);
+
+      // Show/hide video panel
+      if (t.type === 'video') {
+        els.videoPanel.classList.remove('hidden');
+        // mount the video element into the panel
+        if (!els.videoMount.contains(videoEl)) {
+          els.videoMount.innerHTML = '';
+          videoEl.classList.remove('hidden');
+          videoEl.classList.add('w-full','h-full');
+          videoEl.style.maxHeight = 'none';
+          els.videoMount.appendChild(videoEl);
+        }
+      } else {
+        els.videoPanel.classList.add('hidden');
+        // keep video element detached/hidden
+        try {
+          if (videoEl.parentElement) {
+            videoEl.pause();
+            videoEl.classList.add('hidden');
+            document.body.appendChild(videoEl);
+          }
+        } catch {}
+      }
+
+      // Load media
+      el.crossOrigin = 'anonymous';
+      el.src = t.src;
+      el.preload = 'metadata';
+
+      // Keep volume consistent
+      const vol = Number(els.volume.value) / 100;
+      el.volume = clamp(vol, 0, 1);
+
+      // If same track and not forcing, toggle
+      if (wasSame && !forcePlay) {
+        togglePlay();
+        return;
+      }
+
+      // Attempt autoplay only after user interaction
+      if (forcePlay) {
+        try {
+          await el.play();
+          setPlayIcon(true);
+          startViz(el);
+          toast(`Now playing: <span class="text-white">${t.title}</span>`, 'ok');
+        } catch (e) {
+          setPlayIcon(false);
+          startViz(el);
+          toast('Tap Play to start audio (autoplay blocked).', 'warn');
+        }
+      }
+
+      // Capture duration when available
+      el.onloadedmetadata = () => {
+        const dur = isFinite(el.duration) ? el.duration : null;
+        if (dur && (!Number.isFinite(t.duration) || Math.abs(t.duration - dur) > 1)) {
+          t.duration = dur;
+          updateStats();
+          // Re-render to update durations (light touch)
+          // Keep it minimal: just update the specific card if visible
+          const card = els.grid.querySelector(`[data-id="${t.id}"]`);
+          if (card) {
+            const durEl = card.querySelector('.mono');
+            if (durEl) durEl.textContent = fmtTime(dur);
+          }
+        }
+        els.durTime.textContent = fmtTime(el.duration);
+      };
+
+      el.onended = () => {
+        if (state.repeat === 'one') {
+          el.currentTime = 0;
+          el.play();
+          return;
+        }
+        next();
+      };
+
+      renderQueue();
+    }
+
+    function getActiveMediaEl() {
+      const t = getActiveTrack();
+      if (!t) return audioEl;
+      return getMediaElForTrack(t);
+    }
+
+    async function togglePlay() {
+      state.userInteracted = true;
+      const t = getActiveTrack();
+      if (!t) {
+        // play first filtered
+        const first = state.filtered[0] || state.tracks[0];
+        if (first) return playById(first.id);
+        return;
+      }
+      const el = getActiveMediaEl();
+      if (el.paused) {
+        try {
+          await el.play();
+          setPlayIcon(true);
+          startViz(el);
+        } catch {
+          toast('Unable to play this media. Try another track or upload a local file.', 'bad');
+        }
+      } else {
+        el.pause();
+        setPlayIcon(false);
+      }
+    }
+
+    function prev() {
+      const t = getActiveTrack();
+      const el = getActiveMediaEl();
+      if (t && el.currentTime > 4) {
+        el.currentTime = 0;
+        return;
+      }
+
+      const list = getPlaybackList();
+      if (!list.length) return;
+
+      const idx = list.indexOf(state.activeId);
+      const prevIdx = idx > 0 ? idx - 1 : (state.repeat === 'all' ? list.length - 1 : 0);
+      playById(list[prevIdx]);
+    }
+
+    function next() {
+      const list = getPlaybackList();
+      if (!list.length) return;
+
+      const idx = list.indexOf(state.activeId);
+      if (idx < 0) {
+        playById(list[0]);
+        return;
+      }
+
+      let nextIdx = idx + 1;
+      if (nextIdx >= list.length) {
+        if (state.repeat === 'all') nextIdx = 0;
+        else {
+          // stop
+          setPlayIcon(false);
+          return;
+        }
+      }
+      playById(list[nextIdx]);
+    }
+
+    function getPlaybackList() {
+      // Priority: queue. If empty, use filtered.
+      let list = state.queue.length ? [...state.queue] : state.filtered.map(t => t.id);
+      list = list.filter(id => state.tracks.some(t => t.id === id));
+
+      if (state.shuffle) {
+        // Keep active at front, shuffle the rest deterministically per session
+        const active = state.activeId;
+        const rest = list.filter(x => x !== active);
+        // Fisher-Yates with seeded-ish randomness from crypto
+        for (let i = rest.length - 1; i > 0; i--) {
+          const r = crypto.getRandomValues(new Uint32Array(1))[0] / 2**32;
+          const j = Math.floor(r * (i + 1));
+          [rest[i], rest[j]] = [rest[j], rest[i]];
+        }
+        list = active ? [active, ...rest] : rest;
+      }
+
+      return list;
+    }
+
+    function updateTransportUI() {
+      els.shuffleBtn.classList.toggle('bg-white/10', state.shuffle);
+      els.shuffleState.textContent = state.shuffle ? 'ON' : 'OFF';
+
+      const rep = state.repeat;
+      els.repeatState.textContent = rep.toUpperCase();
+      els.repeatBtn.classList.toggle('bg-white/10', rep !== 'off');
+      els.repeatBtn.title = `Repeat: ${rep}`;
+      const icon = els.repeatBtn.querySelector('i');
+      if (rep === 'one') icon.className = 'fas fa-redo-alt';
+      else icon.className = 'fas fa-redo';
+    }
+
+    function updateSeekUI() {
+      const el = getActiveMediaEl();
+      const cur = el.currentTime || 0;
+      const dur = isFinite(el.duration) ? el.duration : 0;
+      els.curTime.textContent = fmtTime(cur);
+      els.durTime.textContent = fmtTime(dur);
+      if (dur > 0) {
+        els.seek.value = String(Math.floor((cur / dur) * 1000));
+      } else {
+        els.seek.value = '0';
+      }
+      requestAnimationFrame(updateSeekUI);
+    }
+
+    // ---------------------------
+    // Visualizer (Web Audio API)
+    // ---------------------------
+
+    const vizCtx2d = els.viz.getContext('2d');
+
+    function initAudioContextIfNeeded() {
+      if (state.viz.ctx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) {
+        toast('Web Audio API not supported in this browser.', 'warn');
+        state.viz.enabled = false;
+        return;
+      }
+      state.viz.ctx = new AC();
+      state.viz.analyser = state.viz.ctx.createAnalyser();
+      state.viz.analyser.fftSize = 2048;
+      state.viz.analyser.smoothingTimeConstant = 0.85;
+      state.viz.data = new Uint8Array(state.viz.analyser.fftSize);
+      state.viz.freq = new Uint8Array(state.viz.analyser.frequencyBinCount);
+    }
+
+    function connectSource(mediaEl) {
+      initAudioContextIfNeeded();
+      if (!state.viz.ctx || !state.viz.analyser) return;
+
+      try {
+        if (state.viz.source) {
+          try { state.viz.source.disconnect(); } catch {}
+          state.viz.source = null;
+        }
+
+        // Important: You can only create ONE source per media element; if we reconnect same element after disconnect, it is still ok in most browsers,
+        // but some get picky; we’ll cache per element.
+        if (!mediaEl.__sovrSource) {
+          mediaEl.__sovrSource = state.viz.ctx.createMediaElementSource(mediaEl);
+        }
+        state.viz.source = mediaEl.__sovrSource;
+
+        state.viz.source.connect(state.viz.analyser);
+        state.viz.analyser.connect(state.viz.ctx.destination);
+
+        state.viz.corsLikelyBlocked = false;
+        els.corsPill.classList.add('hidden');
+      } catch (e) {
+        // Common if CORS blocks or due to element already connected in another context
+        state.viz.corsLikelyBlocked = true;
+        els.corsPill.textContent = 'Visualizer limited (CORS) — upload local file for full analysis';
+        els.corsPill.classList.remove('hidden');
+      }
+    }
+
+    function startViz(mediaEl) {
+      if (!state.viz.enabled) return;
+      initAudioContextIfNeeded();
+      if (!state.viz.ctx) return;
+
+      // resume context on user gesture
+      if (state.viz.ctx.state === 'suspended' && state.userInteracted) {
+        state.viz.ctx.resume().catch(()=>{});
+      }
+
+      connectSource(mediaEl);
+
+      if (!state.viz.raf) drawViz();
+    }
+
+    function drawViz() {
+      state.viz.raf = requestAnimationFrame(drawViz);
+      const w = els.viz.clientWidth;
+      const h = els.viz.height;
+
+      // Keep canvas crisp
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      if (els.viz.width !== Math.floor(w * dpr) || els.viz.height !== Math.floor(h * dpr)) {
+        els.viz.width = Math.floor(w * dpr);
+        els.viz.height = Math.floor(h * dpr);
+      }
+
+      const cw = els.viz.width;
+      const ch = els.viz.height;
+      vizCtx2d.clearRect(0, 0, cw, ch);
+
+      // background
+      vizCtx2d.fillStyle = 'rgba(255,255,255,0.03)';
+      vizCtx2d.fillRect(0, 0, cw, ch);
+
+      if (!state.viz.enabled || !state.viz.analyser || state.viz.corsLikelyBlocked) {
+        // soft placeholder
+        vizCtx2d.fillStyle = 'rgba(255,255,255,0.28)';
+        vizCtx2d.font = `${Math.floor(11 * dpr)}px ui-sans-serif`;
+        vizCtx2d.fillText(state.viz.corsLikelyBlocked ? 'Visualizer limited by CORS (try local upload)' : 'Visualizer off', 12 * dpr, 28 * dpr);
+        return;
+      }
+
+      const mode = state.viz.mode;
+
+      if (mode === 'wave') {
+        state.viz.analyser.getByteTimeDomainData(state.viz.data);
+        vizCtx2d.strokeStyle = 'rgba(167,139,250,0.95)';
+        vizCtx2d.lineWidth = 2 * dpr;
+        vizCtx2d.beginPath();
+
+        const slice = cw / state.viz.data.length;
+        let x = 0;
+        for (let i = 0; i < state.viz.data.length; i++) {
+          const v = state.viz.data[i] / 128.0;
+          const y = (v * ch) / 2;
+          if (i === 0) vizCtx2d.moveTo(x, y);
+          else vizCtx2d.lineTo(x, y);
+          x += slice;
+        }
+        vizCtx2d.stroke();
+
+        // glow line
+        vizCtx2d.strokeStyle = 'rgba(34,211,238,0.55)';
+        vizCtx2d.lineWidth = 1 * dpr;
+        vizCtx2d.stroke();
+
+      } else {
+        state.viz.analyser.getByteFrequencyData(state.viz.freq);
+        const bins = 64;
+        const step = Math.floor(state.viz.freq.length / bins);
+        const barW = cw / bins;
+
+        let avg = 0;
+        for (let i = 0; i < bins; i++) {
+          const v = state.viz.freq[i * step] / 255;
+          avg += v;
+          const barH = v * (ch * 0.92);
+          const x = i * barW;
+          const y = ch - barH;
+
+          const g = vizCtx2d.createLinearGradient(0, y, 0, ch);
+          g.addColorStop(0, 'rgba(34,211,238,0.90)');
+          g.addColorStop(1, 'rgba(167,139,250,0.40)');
+          vizCtx2d.fillStyle = g;
+          vizCtx2d.fillRect(x + barW * 0.18, y, barW * 0.64, barH);
+        }
+
+        avg /= bins;
+        setReactiveAmbience(avg);
+      }
+
+      // lightweight reactive ambience in wave mode too
+      if (mode === 'wave') {
+        state.viz.analyser.getByteFrequencyData(state.viz.freq);
+        let avg = 0;
+        for (let i = 0; i < 80; i++) avg += state.viz.freq[i] / 255;
+        avg /= 80;
+        setReactiveAmbience(avg);
+      }
+    }
+
+    function setReactiveAmbience(level01) {
+      if (state.ambience !== 'reactive') return;
+      const lvl = clamp(level01, 0, 1);
+      // hue swings slightly with energy
+      const hue = Math.round(250 + lvl * 40);
+      const alpha = 0.18 + lvl * 0.35;
+      document.documentElement.style.setProperty('--reactHue', String(hue));
+      document.documentElement.style.setProperty('--reactAlpha', String(alpha));
+    }
+
+    // ---------------------------
+    // Uploads & drag/drop
+    // ---------------------------
+
+    function filesToTracks(files) {
+      const out = [];
+      for (const f of files) {
+        if (!f || !(f.type || '').match(/^(audio|video)\//)) continue;
+        const isVideo = f.type.startsWith('video/');
+        const objUrl = URL.createObjectURL(f);
+
+        out.push(normalizeTrack({
+          title: f.name.replace(/\.(mp3|wav|m4a|ogg|mp4|webm|mov|mkv)$/i, ''),
+          artist: 'Local Upload',
+          src: objUrl,
+          type: isVideo ? 'video' : 'audio',
+          tags: ['local'],
+          album: 'Browser Session',
+          year: new Date().getFullYear(),
+          fileName: f.name,
+          mime: f.type,
+          coverHint: isVideo ? 'video' : 'mix'
+        }, 'local'));
+      }
+      return out;
+    }
+
+    function addTracks(tracks, {save=true} = {}) {
+      // De-dupe by src
+      const existingSrc = new Set(state.tracks.map(t => t.src));
+      let added = 0;
+      for (const t of tracks) {
+        if (!t || !t.src || existingSrc.has(t.src)) continue;
+        state.tracks.push(t);
+        existingSrc.add(t.src);
+        added++;
+      }
+      refreshTagFilterOptions();
+      applyFilters();
+      renderQueue();
+      updateStats();
+      if (save) saveLibrary();
+      return added;
+    }
+
+    // ---------------------------
+    // Export / Import (metadata)
+    // ---------------------------
+
+    function exportLibrary() {
+      const payload = {
+        name: 'SOVR Musik Library',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        tracks: state.tracks
+          .filter(t => /^https?:/i.test(t.src))
+          .map(({id, _blob, origin, ...rest}) => rest)
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sovr-musik-library.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('Exported remote library JSON.', 'ok');
+    }
+
+    async function importLibrary(file) {
+      const text = await file.text();
+      let obj;
+      try { obj = JSON.parse(text); } catch { toast('Invalid JSON import.', 'bad'); return; }
+      const arr = Array.isArray(obj.tracks) ? obj.tracks : (Array.isArray(obj) ? obj : null);
+      if (!arr) { toast('Import format not recognized. Expected {tracks:[...]}', 'warn'); return; }
+
+      const tracks = arr
+        .filter(t => t && typeof t.src === 'string' && /^https?:/i.test(t.src))
+        .map(t => normalizeTrack(t, 'remote'));
+
+      const added = addTracks(tracks, {save:true});
+      toast(`Imported ${added} track(s).`, 'ok');
+    }
+
+    // ---------------------------
+    // Download
+    // ---------------------------
+
+    function downloadCurrent() {
+      const t = getActiveTrack();
+      if (!t) return;
+      const a = document.createElement('a');
+      a.href = t.src;
+
+      // Best-effort filename
+      const ext = t.type === 'video' ? '.mp4' : '.mp3';
+      const base = (t.fileName || `${t.title} — ${t.artist}`)
+        .replace(/[\\/:*?"<>|]+/g, '_')
+        .slice(0, 140);
+      a.download = base.endsWith(ext) ? base : (base + ext);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // ---------------------------
+    // Video controls
+    // ---------------------------
+
+    async function toggleVideoPanel() {
+      els.videoPanel.classList.toggle('hidden');
+      if (!els.videoPanel.classList.contains('hidden')) {
+        const t = getActiveTrack();
+        if (t && t.type === 'video') {
+          if (!els.videoMount.contains(videoEl)) {
+            els.videoMount.innerHTML = '';
+            videoEl.classList.remove('hidden');
+            videoEl.classList.add('w-full','h-full');
+            els.videoMount.appendChild(videoEl);
+          }
+        }
+      }
+    }
+
+    async function tryPiP() {
+      const t = getActiveTrack();
+      if (!t || t.type !== 'video') return toast('PiP is only available for video tracks.', 'warn');
+      const el = videoEl;
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          await el.requestPictureInPicture();
+        }
+      } catch {
+        toast('Picture-in-Picture not available for this browser/media.', 'warn');
+      }
+    }
+
+    // ---------------------------
+    // Ambience toggle
+    // ---------------------------
+
+    function setAmbience(mode) {
+      state.ambience = mode;
+      localStorage.setItem('sovr.ambience', mode);
+      if (mode === 'calm') {
+        document.documentElement.style.setProperty('--reactAlpha', '0.10');
+      }
+      toast(`Ambience: <span class="text-white">${mode}</span>`, 'ok');
+    }
+
+    function toggleAmbience() {
+      setAmbience(state.ambience === 'reactive' ? 'calm' : 'reactive');
+    }
+
+    // ---------------------------
+    // Events
+    // ---------------------------
+
+    els.playBtn.addEventListener('click', () => { state.userInteracted = true; togglePlay(); });
+    els.prevBtn.addEventListener('click', () => { state.userInteracted = true; prev(); });
+    els.nextBtn.addEventListener('click', () => { state.userInteracted = true; next(); });
+
+    els.shuffleBtn.addEventListener('click', () => {
+      state.shuffle = !state.shuffle;
+      updateTransportUI();
+      toast(`Shuffle ${state.shuffle ? 'ON' : 'OFF'}`, 'ok');
+    });
+
+    els.repeatBtn.addEventListener('click', () => {
+      const order = ['off','all','one'];
+      state.repeat = order[(order.indexOf(state.repeat) + 1) % order.length];
+      updateTransportUI();
+      toast(`Repeat: ${state.repeat}`, 'ok');
+    });
+
+    els.seek.addEventListener('input', () => {
+      const el = getActiveMediaEl();
+      const dur = isFinite(el.duration) ? el.duration : 0;
+      if (dur <= 0) return;
+      const p = Number(els.seek.value) / 1000;
+      el.currentTime = p * dur;
+    });
+
+    els.volume.addEventListener('input', () => {
+      const v = clamp(Number(els.volume.value)/100, 0, 1);
+      audioEl.volume = v;
+      videoEl.volume = v;
+    });
+
+    els.downloadBtn.addEventListener('click', downloadCurrent);
+
+    els.openVideoBtn.addEventListener('click', toggleVideoPanel);
+    els.hideVideoBtn.addEventListener('click', () => els.videoPanel.classList.add('hidden'));
+    els.pipBtn.addEventListener('click', tryPiP);
+
+    els.vizOnBtn.addEventListener('click', () => {
+      state.viz.enabled = !state.viz.enabled;
+      els.vizOnBtn.textContent = state.viz.enabled ? 'On' : 'Off';
+      toast(`Visualizer ${state.viz.enabled ? 'ON' : 'OFF'}`, 'ok');
+    });
+
+    els.vizModeBtn.addEventListener('click', () => {
+      state.viz.mode = state.viz.mode === 'wave' ? 'bars' : 'wave';
+      localStorage.setItem('sovr.vizMode', state.viz.mode);
+      toast(`Visualizer mode: ${state.viz.mode}`, 'ok');
+    });
+
+    els.copyNowBtn.addEventListener('click', async () => {
+      const t = getActiveTrack();
+      if (!t) return toast('Nothing is playing.', 'warn');
+      const txt = `${t.title} — ${t.artist}`;
+      try {
+        await navigator.clipboard.writeText(txt);
+        toast('Copied now playing to clipboard.', 'ok');
+      } catch {
+        toast('Clipboard permission denied.', 'warn');
+      }
+    });
+
+    // Search/filter/sort
+    const filterOnInput = () => applyFilters();
+    els.searchInput.addEventListener('input', filterOnInput);
+    els.typeFilter.addEventListener('change', filterOnInput);
+    els.tagFilter.addEventListener('change', filterOnInput);
+    els.sortSelect.addEventListener('change', filterOnInput);
+    els.clearSearchBtn.addEventListener('click', () => { els.searchInput.value=''; applyFilters(); els.searchInput.focus(); });
+
+    // Upload
+    els.uploadBtn.addEventListener('click', () => els.filePicker.click());
+    els.filePicker.addEventListener('change', () => {
+      const files = Array.from(els.filePicker.files || []);
+      const tracks = filesToTracks(files);
+      const added = addTracks(tracks, {save:false});
+      toast(`Added ${added} local track(s).`, added ? 'ok' : 'warn');
+      els.filePicker.value = '';
+    });
+
+    // Drop anywhere
+    ;['dragenter','dragover'].forEach(evt => document.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      $('#dropzone').classList.add('ring-2','ring-violet-400/30');
+    }));
+    ;['dragleave','drop'].forEach(evt => document.addEventListener(evt, (e) => {
+      e.preventDefault();
+      $('#dropzone').classList.remove('ring-2','ring-violet-400/30');
+    }));
+
+    document.addEventListener('drop', (e) => {
+      const files = Array.from(e.dataTransfer.files || []);
+      if (!files.length) return;
+      const tracks = filesToTracks(files);
+      const added = addTracks(tracks, {save:false});
+      toast(`Dropped ${added} track(s) into session.`, added ? 'ok' : 'warn');
+    });
+
+    // Queue drawer
+    els.queueBtn.addEventListener('click', () => { renderQueue(); openQueue(true); });
+    els.closeQueueBtn.addEventListener('click', () => openQueue(false));
+    els.clearQueueBtn.addEventListener('click', () => { queueClear(); toast('Queue cleared.', 'ok'); });
+    els.addFilteredToQueueBtn.addEventListener('click', () => {
+      const add = state.filtered.map(t => t.id).filter(id => !state.queue.includes(id));
+      state.queue.push(...add);
+      renderQueue();
+      updateStats();
+      toast(`Added ${add.length} from filtered list to queue.`, add.length ? 'ok' : 'warn');
+    });
+
+    // Export/import/reset
+    els.exportBtn.addEventListener('click', exportLibrary);
+    els.importBtn.addEventListener('click', () => els.importPicker.click());
+    els.importPicker.addEventListener('change', async () => {
+      const f = els.importPicker.files?.[0];
+      if (!f) return;
+      await importLibrary(f);
+      els.importPicker.value = '';
+    });
+    els.resetBtn.addEventListener('click', () => {
+      if (!confirm('Reset library to defaults? (Remote library resets, local uploads are always session-only.)')) return;
+      localStorage.removeItem('sovr.library.v1');
+      boot(true);
+      toast('Library reset.', 'ok');
+    });
+
+    // Grid columns
+    els.gridMinus.addEventListener('click', () => { state.gridCols = clamp(state.gridCols - 1, 4, 8); updateGridCols(); toast(`Grid: ${state.gridCols} cols`, 'ok'); });
+    els.gridPlus.addEventListener('click', () => { state.gridCols = clamp(state.gridCols + 1, 4, 8); updateGridCols(); toast(`Grid: ${state.gridCols} cols`, 'ok'); });
+
+    // Help
+    if (els.helpBtn) {
+      els.helpBtn.addEventListener('click', () => els.helpModal.classList.remove('hidden'));
+    }
+    els.helpCloseBtn.addEventListener('click', () => els.helpModal.classList.add('hidden'));
+    els.helpModal.addEventListener('click', (e) => { if (e.target === els.helpModal || e.target.classList.contains('bg-black/60')) els.helpModal.classList.add('hidden'); });
+
+    // Ambience
+    els.themeBtn.addEventListener('click', toggleAmbience);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // avoid interfering with typing
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      const isTyping = tag === 'input' || tag === 'textarea' || e.target?.isContentEditable;
+
+      if (e.key === '/' && !isTyping) {
+        e.preventDefault();
+        els.searchInput.focus();
+        return;
+      }
+
+      if (isTyping) {
+        if (e.key === 'Escape') e.target.blur();
+        return;
+      }
+
+      if (e.code === 'Space') { e.preventDefault(); state.userInteracted = true; togglePlay(); }
+      if (e.ctrlKey && e.key === 'ArrowRight') { e.preventDefault(); next(); }
+      if (e.ctrlKey && e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      if (!e.ctrlKey && e.key === 'ArrowRight') { const el = getActiveMediaEl(); el.currentTime = (el.currentTime||0) + 5; }
+      if (!e.ctrlKey && e.key === 'ArrowLeft') { const el = getActiveMediaEl(); el.currentTime = Math.max(0,(el.currentTime||0) - 5); }
+      if (e.key.toLowerCase() === 'm') {
+        const el = getActiveMediaEl();
+        el.muted = !el.muted;
+        toast(el.muted ? 'Muted' : 'Unmuted', 'ok');
+      }
+      if (e.key === 'Escape') { openQueue(false); els.helpModal.classList.add('hidden'); }
+    });
+
+    // Resize
+    window.addEventListener('resize', applyResponsiveGrid);
+
+    // Update seek every frame
+    requestAnimationFrame(updateSeekUI);
+
+    // Keep play icon in sync
+    ;[audioEl, videoEl].forEach(el => {
+      el.addEventListener('play', () => setPlayIcon(true));
+      el.addEventListener('pause', () => setPlayIcon(false));
+    });
+
+    // ---------------------------
+    // Boot
+    // ---------------------------
+
+    function boot(forceReset=false) {
+      // reset ephemeral state
+      state.queue = [];
+      state.activeId = null;
+      state.shuffle = false;
+      state.repeat = 'off';
+      updateTransportUI();
+
+      // stop media
+      audioEl.pause();
+      videoEl.pause();
+      audioEl.removeAttribute('src');
+      videoEl.removeAttribute('src');
+
+      // Load tracks
+      const saved = (!forceReset) ? loadLibrary() : null;
+      const base = saved && saved.length ? saved : seedTracks;
+
+      state.tracks = base.map(t => normalizeTrack(t, 'remote'));
+
+      // initial UI
+      refreshTagFilterOptions();
+      updateGridCols();
+      applyFilters();
+      renderQueue();
+      updateStats();
+      setNowPlayingUI(null);
+
+      // Visualizer defaults
+      els.vizOnBtn.textContent = state.viz.enabled ? 'On' : 'Off';
+
+      // ambience
+      setAmbience(state.ambience);
+
+      // Preload duration for visible tracks (best-effort)
+      warmDurations();
+    }
+
+    async function warmDurations() {
+      // Best-effort: sample first few tracks to fill durations.
+      const sample = state.tracks.slice(0, 8);
+      for (const t of sample) {
+        if (Number.isFinite(t.duration)) continue;
+        // Use a temp media element of the right type
+        const temp = document.createElement(t.type === 'video' ? 'video' : 'audio');
+        temp.preload = 'metadata';
+        temp.crossOrigin = 'anonymous';
+        temp.src = t.src;
+        await new Promise(resolve => {
+          const done = () => { cleanup(); resolve(); };
+          const cleanup = () => {
+            temp.onloadedmetadata = null;
+            temp.onerror = null;
+            try { temp.removeAttribute('src'); temp.load(); } catch {}
+          };
+          temp.onloadedmetadata = () => {
+            if (isFinite(temp.duration)) t.duration = temp.duration;
+            done();
+          };
+          temp.onerror = () => done();
+        });
+      }
+      updateStats();
+      // refresh cards if durations changed
+      applyFilters();
+    }
+
+    boot(false);
+
+    // First-time friendly hint
+    setTimeout(() => {
+      toast('Tip: drag & drop your own tracks (mp3/mp4). Local uploads unlock full waveform analysis.', 'info', 4800);
+    }, 700);
+  </script>
+</body>
+</html>
