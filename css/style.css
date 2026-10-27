@@ -1,0 +1,239 @@
+/* ==========================================================================
+   SOVR Musik — custom styles
+   "Grown Man Professional" dark theme
+   Obsidian / charcoal base with bronze-gold and slate accents.
+   No pinks, purples, or cyan. Masculine, restrained, premium.
+   ========================================================================== */
+
+:root {
+  --bg0: #080808;   /* obsidian black */
+  --bg1: #0D0D0D;   /* charcoal */
+  --glass: rgba(255, 255, 255, .05);
+  --glass2: rgba(255, 255, 255, .08);
+  --stroke: rgba(255, 255, 255, .08);
+  --accent: #B8860B;  /* dark goldenrod / bronze — masculine accent */
+  --accent2: #4A5568; /* slate gray */
+  --good: #2F855A;    /* deep forest green */
+  --warn: #C5A059;    /* muted gold */
+  --bad: #9C2B2B;     /* deep brick red */
+
+  --reactHue: 38;     /* warm bronze / amber */
+  --reactSat: 40%;
+  --reactLum: 45%;
+  --reactAlpha: 0.14;
+}
+
+html, body { height: 100%; }
+
+body {
+  background:
+    radial-gradient(1000px 650px at 20% 0%, hsla(var(--reactHue), var(--reactSat), var(--reactLum), calc(var(--reactAlpha) * .8)), transparent 55%),
+    radial-gradient(900px 700px at 90% 15%, hsla(210, 20%, 35%, calc(var(--reactAlpha) * .55)), transparent 50%),
+    radial-gradient(700px 500px at 60% 100%, rgba(255,255,255,.03), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  color: rgba(255, 255, 255, .9);
+}
+
+/* subtle film-grain noise layer */
+.noise::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="260" height="260" filter="url(%23n)" opacity="0.15"/></svg>');
+  mix-blend-mode: overlay;
+  opacity: .22;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glow {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.05),
+    0 30px 80px rgba(0,0,0,.6);
+}
+
+.subtle-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(184,134,11,.35);
+  border-color: rgba(184,134,11,.5) !important;
+}
+
+/* range inputs (seek / volume) */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  overflow: hidden;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: white;
+  box-shadow: -500px 0 0 500px rgba(184,134,11,.55);
+  border: 1px solid rgba(255,255,255,.2);
+}
+.range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid rgba(255,255,255,.2);
+}
+
+.chip {
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,255,255,.08);
+}
+.card:hover {
+  border-color: rgba(184,134,11,.35);
+  transform: translateY(-1px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+
+/* cover art: real image with gradient fallback */
+.cover-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.cover-img.loaded { opacity: 1; }
+.cover-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120px 120px at 25% 30%, rgba(184,134,11,.55), transparent 60%),
+    radial-gradient(140px 120px at 70% 70%, rgba(74,85,104,.35), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+}
+
+.mono { font-variant-ligatures: none; font-feature-settings: "ss01" 1, "ss02" 1; }
+
+/* scrollbar */
+::-webkit-scrollbar { height: 10px; width: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 999px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,.03); }
+
+/* reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none !important; transform: none !important; }
+  .cover-img { transition: none; }
+}
+
+/* keep content above the bottom player */
+.pb-player { padding-bottom: 170px; }
+@media (min-width: 768px) { .pb-player { padding-bottom: 152px; } }
+
+/* ==========================================================================
+   Dynamic component states
+   ========================================================================== */
+
+.hidden { display: none !important; }
+
+.translate-x-full { transform: translateX(100%); }
+
+.ring-bronze {
+  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.3);
+}
+
+.chip:hover { background: rgba(255,255,255,.1); }
+
+/* primary play button — bronze accent */
+.btn-play {
+  background: rgba(184,134,11,.2);
+  border: 1px solid rgba(184,134,11,.35);
+  color: #E9DCC8;
+}
+.btn-play:hover {
+  background: rgba(184,134,11,.35);
+  border-color: rgba(184,134,11,.55);
+}
+
+/* media type badges */
+.badge-video {
+  border: 1px solid rgba(197,160,89,.35);
+  background: rgba(197,160,89,.12);
+  color: #E9DCC8;
+}
+.badge-audio {
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  color: #C9C9C9;
+}
+
+/* upload button — bronze accent */
+.btn-upload {
+  background: rgba(184,134,11,.18);
+  border: 1px solid rgba(184,134,11,.35);
+  color: #E9DCC8;
+}
+.btn-upload:hover {
+  background: rgba(184,134,11,.3);
+  border-color: rgba(184,134,11,.55);
+}
+
+/* toast color classes — grown man palette */
+.toast-ok { border-color: rgba(47,133,90,.35); background: rgba(47,133,90,.12); color: #BFE3CC; }
+.toast-warn { border-color: rgba(197,160,89,.35); background: rgba(197,160,89,.12); color: #E9DCC8; }
+.toast-bad { border-color: rgba(156,43,43,.35); background: rgba(156,43,43,.12); color: #E3C9C9; }
+.toast-ok i { color: #2F855A; }
+.toast-warn i { color: #B8860B; }
+.toast-bad i { color: #9C2B2B; }
+
+/* reset button — brick red */
+.btn-reset {
+  border: 1px solid rgba(156,43,43,.35);
+  background: rgba(156,43,43,.12);
+  color: #E3C9C9;
+}
+.btn-reset:hover {
+  background: rgba(156,43,43,.28);
+  border-color: rgba(156,43,43,.55);
+}
+
+/* now-playing highlight in the grid */
+.card[data-active] {
+  border-color: rgba(184,134,11,.5);
+  box-shadow: 0 0 0 2px rgba(184,134,11,.3), 0 20px 60px rgba(0,0,0,.45);
+  transform: translateY(-2px);
+}
+.card[data-active] .cover-fallback {
+  box-shadow: inset 0 0 0 2px rgba(184,134,11,.4);
+}
+
+/* video panel */
+.aspect-video { aspect-ratio: 16 / 9; }
+
+/* toasts */
+.toast-enter { animation: toastIn 220ms ease both; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* queue drag reorder */
+.drag-ghost { opacity: .5; }
