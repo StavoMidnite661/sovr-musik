@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [{ "src": "index.html", "use": "@vercel/static" }],
   "routes": [
-    { "src": "/(css|js|data|tracks)/(.*)", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
+    { "src": "/(css|js|data|tracks)/(.*)", "dest": "/$1/$2", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
